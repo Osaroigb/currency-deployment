@@ -4,7 +4,7 @@ import requests
 import datetime
 from dotenv import load_dotenv
 from requests.exceptions import HTTPError
-from app.utils.errors import InvalidCurrencyCode, UnprocessableEntityError, OperationForbiddenError
+from app.utils.errors import InvalidCurrencyCode
 
 load_dotenv()
 
