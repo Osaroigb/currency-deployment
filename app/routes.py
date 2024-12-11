@@ -67,7 +67,7 @@ def handle_exception(error):
         http_code = error.httpCode
     else:
         # Default error response if error type is not specifically handled
-        response = {"error": "Internal Server Error", "details": "An unexpected error occurred."}
+        response = {"error": "Internal Server Error", "details": "An unexpected error occurred"}
         http_code = 500
     
     return jsonify(response), http_code

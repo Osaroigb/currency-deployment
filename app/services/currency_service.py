@@ -30,7 +30,7 @@ class CurrencyService:
         cached = self.redis_client.get_value(cache_key).decode('utf-8') if self.redis_client.get_value(cache_key) else None
 
         if cached:
-            print(f"{from_currency}/{to_currency} is already cached")
+            print(f"{from_currency}/{to_currency} is already cached.")
 
             rate, timestamp = cached.split('|')
             return {'rate': float(rate), 'timestamp': timestamp}
