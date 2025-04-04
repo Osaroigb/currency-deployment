@@ -10,7 +10,7 @@ load_dotenv()
 APP_PORT_VAR = "APP_PORT"
 APP_HOST_VAR = "APP_HOST"
 APP_NAME_VAR = "APP_NAME"
-REDIS_CLOUD_URL_VAR = "REDIS_CLOUD_URL"
+REDISCLOUD_URL_VAR = "REDISCLOUD_URL"
 OPEN_XR_APP_ID_VAR = "OPEN_XR_APP_ID"
 OPEN_XR_BASE_URL_VAR = "OPEN_XR_BASE_URL"
 XECD_API_ID_VAR = "XECD_API_ID"
@@ -23,7 +23,7 @@ class Config:
     APP_PORT: int = int(os.getenv(APP_PORT_VAR))
     APP_HOST: str = os.getenv(APP_HOST_VAR)
     APP_NAME: str = os.getenv(APP_NAME_VAR)
-    REDIS_CLOUD_URL: str = os.getenv(REDIS_CLOUD_URL_VAR)
+    REDISCLOUD_URL: str = os.getenv(REDISCLOUD_URL_VAR)
     OPEN_XR_APP_ID: str = os.getenv(OPEN_XR_APP_ID_VAR)
     OPEN_XR_BASE_URL: str = os.getenv(OPEN_XR_BASE_URL_VAR)
     XECD_API_ID: str = os.getenv(XECD_API_ID_VAR)
@@ -37,7 +37,7 @@ class Config:
             APP_NAME_VAR,
             APP_PORT_VAR,
             APP_HOST_VAR,
-            REDIS_CLOUD_URL_VAR,
+            REDISCLOUD_URL_VAR,
             OPEN_XR_APP_ID_VAR,
             OPEN_XR_BASE_URL_VAR,
             XECD_API_ID_VAR,
