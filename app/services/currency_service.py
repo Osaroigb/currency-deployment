@@ -2,7 +2,7 @@ import requests
 import datetime
 from app.config import logging, Config
 from requests.exceptions import HTTPError
-from app.utils.errors import UnprocessableEntityError, NotFoundError, BadRequestError, OperationForbiddenError
+from app.utils.errors import ServiceUnavailableError, UnauthorizedError, UnprocessableEntityError, NotFoundError, BadRequestError, OperationForbiddenError
 
 
 class CurrencyService:
@@ -11,6 +11,10 @@ class CurrencyService:
         self.open_xr_app_id = Config.OPEN_XR_APP_ID
         self.open_xr_base_url = Config.OPEN_XR_BASE_URL
 
+        self.xecd_api_id = Config.XECD_API_ID
+        self.xecd_api_key = Config.XECD_API_KEY
+        self.xecd_base_url = Config.XECD_BASE_URL
+    
 
     def validate_currency_code(self, code):
     
@@ -18,18 +22,18 @@ class CurrencyService:
             raise UnprocessableEntityError(f"Invalid currency code: {code}")
 
 
-    def get_conversion_rate(self, from_currency, to_currency):
+    def get_conversion_rate_v1(self, from_currency, to_currency):
         self.validate_currency_code(from_currency)
         self.validate_currency_code(to_currency)
 
-        logging.info(from_currency)
-        logging.info(to_currency)
+        logging.info(f"[V1] {from_currency}")
+        logging.warning(f"[V1] {to_currency}")
 
-        cache_key = f"{from_currency}_{to_currency}"
+        cache_key = f"v1_{from_currency}_{to_currency}"
         cached = self.redis_client.get_value(cache_key).decode('utf-8') if self.redis_client.get_value(cache_key) else None
 
         if cached:
-            logging.info(f"{from_currency}/{to_currency} is already cached.")
+            logging.info(f"[V1] {from_currency}/{to_currency} is already cached.")
 
             rate, timestamp = cached.split('|')
             return {'rate': float(rate), 'timestamp': timestamp}
@@ -41,7 +45,7 @@ class CurrencyService:
             response = requests.get(url, headers=headers)
             actual_res = response.json()
 
-            logging.warning("actual response below")
+            logging.warning("[V1] actual OPEN exhange response:")
             logging.info(actual_res)
 
             if not actual_res.get("rates") or to_currency not in actual_res["rates"]:
@@ -59,3 +63,65 @@ class CurrencyService:
         except Exception as err:
             logging.error(f"ExceptionError: {err}")
             raise BadRequestError(f"Invalid currency code: {err}")
+        
+    
+    def get_conversion_rate_v2(self, from_currency, to_currency):
+        self.validate_currency_code(from_currency)
+        self.validate_currency_code(to_currency)
+
+        logging.info(f"[V2] {from_currency}")
+        logging.warning(f"[V2] {to_currency}")
+
+        cache_key = f"v2_{from_currency}_{to_currency}"
+        cached = self.redis_client.get_value(cache_key).decode('utf-8') if self.redis_client.get_value(cache_key) else None
+
+        if cached:
+            logging.info(f"[V2] {from_currency}/{to_currency} is already cached.")
+            rate, timestamp = cached.split('|')
+
+            return {'rate': float(rate), 'timestamp': timestamp}
+
+        try:
+            url = f"{self.xecd_base_url}/convert_from.json?from={from_currency}&to={to_currency}&amount=1"
+
+            response = requests.get(url, auth=(self.xecd_api_id, self.xecd_api_key))
+            
+            logging.warning("[V2] Actual XE API response:")
+            logging.info(response.json())
+
+            if response.status_code == 401:
+                raise UnauthorizedError("Invalid XE API credentials.")
+            
+            elif response.status_code == 400:
+                raise BadRequestError("Bad request to XE API.")
+            
+            elif response.status_code == 404:
+                raise NotFoundError(f"Currency {from_currency} to {to_currency} not found.")
+            
+            elif response.status_code == 429:
+                raise OperationForbiddenError("Rate limit exceeded with XE API.")
+            
+            elif response.status_code >= 500:
+                raise ServiceUnavailableError("XE API is currently unavailable.")
+
+            data = response.json()
+
+            # Get the rate for the specific target currency
+            target_data = next((item for item in data["to"] if item["quotecurrency"] == to_currency), None)
+
+            if not target_data:
+                raise NotFoundError(f"No conversion rate found for {from_currency} to {to_currency}.")
+
+            rate = target_data["mid"]
+            timestamp = data.get("timestamp", datetime.datetime.utcnow().isoformat() + "Z")
+
+            self.redis_client.set_value(cache_key, f"{rate}|{timestamp}", 3600)
+            return {'rate': rate, 'timestamp': timestamp}
+
+        except requests.exceptions.RequestException as e:
+            logging.error(f"[V2] Request error: {e}")
+            raise ServiceUnavailableError("Could not connect to XE API.")
+        
+        except Exception as e:
+            logging.error(f"[V2] General exception: {e}")
+            raise BadRequestError(str(e))

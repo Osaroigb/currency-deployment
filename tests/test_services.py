@@ -6,7 +6,7 @@ from app.utils.errors import InvalidCurrencyCode, UnprocessableEntityError
 class TestCurrencyService(unittest.TestCase):
     
     @patch('services.currency_service.requests.get')
-    def test_get_conversion_rate(self, mock_get):
+    def test_get_conversion_rate_v1(self, mock_get):
        
         # Setup
         mock_redis_client = Mock()
@@ -17,18 +17,18 @@ class TestCurrencyService(unittest.TestCase):
         }
 
         # Test successful retrieval
-        result = service.get_conversion_rate("GBP", "EUR")
+        result = service.get_conversion_rate_v1("GBP", "EUR")
         self.assertEqual(result['rate'], 1.383702)
         self.assertIn('timestamp', result)
 
         # Test invalid currency code
         with self.assertRaises(InvalidCurrencyCode):
-            service.get_conversion_rate("FAKE", "EUR")
+            service.get_conversion_rate_v1("FAKE", "EUR")
 
         # Test HTTP error handling
         mock_get.side_effect = Exception("HTTP Error")
         with self.assertRaises(UnprocessableEntityError):
-            service.get_conversion_rate("GBP", "EUR")
+            service.get_conversion_rate_v1("GBP", "EUR")
 
 if __name__ == '__main__':
     unittest.main()

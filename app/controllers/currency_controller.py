@@ -15,7 +15,7 @@ def version_one_conversion():
     
     try:
         currency_service = CurrencyService(app.redis_client)
-        conversion_rate = currency_service.get_conversion_rate(from_currency.upper(), to_currency.upper())
+        conversion_rate = currency_service.get_conversion_rate_v1(from_currency.upper(), to_currency.upper())
 
         response = {
             "from": from_currency.upper(),
@@ -24,12 +24,29 @@ def version_one_conversion():
             "timestamp": conversion_rate['timestamp']
         }
 
-        return build_success_response(message="currency converted successfully", data=response)
+        return build_success_response(message="[V1] currency converted successfully", data=response)
     
     except Exception as e:
-        return build_error_response(message="Invalid currency code provided.", status=400, data=str(e))
+        return build_error_response(message="[V1] currency conversion failed.", status=400, data=str(e))
     
 
-# TODO: complete version 2
-# @app.route(VERSION_TWO_PREFIX + "/conversion", methods=['GET'])
-# def version_two_conversion():
+@currency_bp.route(VERSION_TWO_PREFIX + "/conversion", methods=['GET'])
+def version_two_conversion():
+    from_currency = request.args.get('from')
+    to_currency = request.args.get('to')
+
+    try:
+        currency_service = CurrencyService(app.redis_client)
+        conversion_rate = currency_service.get_conversion_rate_v2(from_currency.upper(), to_currency.upper())
+
+        response = {
+            "from": from_currency.upper(),
+            "to": to_currency.upper(),
+            "rate": conversion_rate['rate'],
+            "timestamp": conversion_rate['timestamp']
+        }
+
+        return build_success_response(message="[V2] currency converted successfully.", data=response)
+
+    except Exception as e:
+        return build_error_response(message="[V2] currency conversion failed.", status=400, data=str(e))
