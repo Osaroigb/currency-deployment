@@ -1,6 +1,5 @@
-import logging 
 from .constants import *
-logging.basicConfig(level=logging.ERROR)
+from app.config import logging
 
 
 class BaseError(Exception):
@@ -22,6 +21,7 @@ class UnprocessableEntityError(BaseError):
             verboseMessage=verboseMessage,
         )
 
+
 class OperationForbiddenError(BaseError):
     def __init__(self, message:str, verboseMessage=None, errorType=None):
         super().__init__(
@@ -30,6 +30,7 @@ class OperationForbiddenError(BaseError):
             errorType= errorType or errorType["OPERATION_FORBIDDEN"],
             verboseMessage=verboseMessage
         )
+
 
 class NotFoundError(BaseError):
     def __init__(self, message: str, verboseMessage=None, errorType=None):
@@ -40,11 +41,32 @@ class NotFoundError(BaseError):
             verboseMessage=verboseMessage
         )
 
-class InvalidCurrencyCode(BaseError):
-    def __init__(self, message:str, verboseMessage=None):
+
+class UnauthorizedError(BaseError):
+    def __init__(self, message: str, verboseMessage=None):
         super().__init__(
-            message=message or "Invalid currency code provided.",
+            message=message or unauthorizedErrorMessage,
+            verboseMessage=verboseMessage,
+            httpCode=statusCodes["401"],
+            errorType=errorTypes["UNAUTHORIZED_ACCESS"],
+        )
+
+
+class BadRequestError(BaseError):
+    def __init__(self, message: str, verboseMessage=None):
+        super().__init__(
+            message=message or badRequestErrorMessage,
             verboseMessage=verboseMessage,
             httpCode=statusCodes["400"],
-            errorType=errorTypes["VALIDATION_FAILED"]
+            errorType=errorTypes["BAD_REQUEST"],
+        )
+
+
+class ServiceUnavailableError(BaseError):
+    def __init__(self, message: str, verboseMessage=None):
+        super().__init__(
+            message=message or serviceUnavailableErrorMessage,
+            verboseMessage=verboseMessage,
+            httpCode=statusCodes["503"],
+            errorType=errorTypes["SERVICE_UNAVAILABLE"],
         )

@@ -1,65 +1,72 @@
-CalculatorBackend
+CurrencyConverter
 |
 |
 └───────app/
 |     |            
 |     │
-|     └──────cache/
+|     └───cache/
 |     │   │
-|     │   └───────__init__.py
+|     │   └─────__init__.py
 |     │   │
-|     │   └───────redis_client.py # Configuration and access to Redis for caching
+|     │   └─────redis_client.py # Configuration and access to Redis for caching
 |     |
+|     |
+|     └───controllers/
+|     │   │
+|     │   └─────currency_controller.py
 |     │
-|     └──────services/
+|     └───services/
 |     │   │
-|     │   └───────__init__.py
+|     │   └─────__init__.py
 |     │   │
-|     │   └───────currency_service.py # Handles currency conversion logic and Redis caching
-|     |
-|     | 
-|     └─────utils/
-|     │   │
-|     │   └───────__init__.py
-|     │   │
-|     │   └───────constants.py
-|     │   │
-|     │   └───────errors.py
-|     │   │
-|     │   └───────rate_limiting.py # Implements rate limiting for the API endpoints
+|     │   └─────currency_service.py # Handles currency conversion logic and Redis caching
 |     |
 |     |
-|     └──────__init__.py # Initializes Flask app and brings together components
+|     └───utils/
+|     │   │
+|     │   └─────__init__.py
+|     │   │
+|     │   └─────api_responses.py
+|     │   │
+|     │   └─────constants.py
+|     │   │
+|     │   └─────errors.py
+|     │   │
+|     │   └─────rate_limiting.py # Implements rate limiting for the API endpoints
+|     |
+|     |
+|     └─────__init__.py # Initializes Flask app and brings together components
+|     |
+|     └─────config.py # Initializes Flask app and brings together components
+|     │
+|     └─────routes.py # Defines routes/endpoints for the API
+|
+|
+└─────tests/
+|     |
+|     |
+|     └────__init__.py
 |     |     
 |     │
-|     └──────routes.py # Defines routes/endpoints for the API
-|
-|
-└───────tests/
-|     |
-|     |
-|     └──────__init__.py
+|     └────test_cache.py # test caching mechanism
 |     |     
 |     │
-|     └──────test_cache.py # test caching mechanism
-|     |     
-|     │
-|     └──────test_services.py # test currency conversion service
+|     └────test_services.py # test currency conversion service
 |
 |
-└───────venv/ # virtual environment
+└─────venv/ # virtual environment
 |
 |
-└───────.env # environment variables e.g. API keys
+└─────.env # environment variables e.g. API keys
 |
 |
-└───────.env.example # environment variable examples
+└─────.env.example # environment variable examples
 |
 |
-└───────.gitignore # ignore certain files & folders
+└─────.gitignore # ignore certain files & folders
 |
 |
-└───────folder-structure.md # this file itself
+└─────folder-structure.md # this file itself
 |
 |
-└───────run.py # Entry point to run the Flask application
+└─────run.py # Entry point to run the Flask application

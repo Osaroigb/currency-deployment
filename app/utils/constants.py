@@ -3,7 +3,9 @@ unprocessableEntityErrorMessage="Unprocessable Entity. Error during payload Vali
 httpErrorMessage="Error occured during operation. Please try again later."
 serviceUnavailableErrorMessage="Error occured during operation. Please try again later.",
 operationForbiddenErrorMessage= "Operation forbidden",
-notFoundErrorMessage="No user record found with this email! Please signup first.",
+notFoundErrorMessage="No currency pair conversion found.",
+unauthorizedErrorMessage = "Unauthorized access."
+badRequestErrorMessage = "Bad request. Check your input parameters."
 
 errorTypes = {
     "HTTP_ERROR": 'HTTP_ERROR',
@@ -13,6 +15,9 @@ errorTypes = {
     "VALIDATION_FAILED": "VALIDATION_FAILED",
     "OPERATION_FORBIDDEN": 'OPERATION_FORBIDDEN',
     "NOT_FOUND_ERROR": 'NOT_FOUND_ERROR',
+    "UNAUTHORIZED_ACCESS": "UNAUTHORIZED_ACCESS",
+    "BAD_REQUEST": "BAD_REQUEST",
+    "SERVICE_UNAVAILABLE": "SERVICE_UNAVAILABLE"
 }
 
 statusCodes = {
@@ -21,7 +26,8 @@ statusCodes = {
     "400":400,
     "401":401,
     "422":422,
-    "500":500,
     "403":403,
-    "404":404
+    "404":404,
+    "500":500,
+    "503": 503
 }

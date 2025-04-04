@@ -1,10 +1,13 @@
-import logging
 from . import app
-from flask import request, jsonify
+from flask import request
+from .config import logging
+from .utils.errors import BaseError
 from .utils.rate_limiting import RateLimiter
-from .utils.errors import InvalidCurrencyCode
-from .services.currency_service import CurrencyService
-from app.utils.errors import UnprocessableEntityError, NotFoundError, OperationForbiddenError
+from app.controllers.currency_controller import currency_bp
+from .utils.api_responses import build_error_response, build_success_response
+
+# Global API prefix
+API_PREFIX = "/api"
 
 rate_limiter = RateLimiter()
 
@@ -13,61 +16,53 @@ def check_rate_limiting():
     ip = request.remote_addr
 
     if rate_limiter.is_rate_limited(ip):
-        return jsonify({"error": "Rate limit exceeded"}), 429
+        logging.error("Rate limit exceeded")
+        return build_error_response(message="Rate limit exceeded", status=429)
     
+
+@app.route("/favicon.ico")
+def favicon():
+    """Handle favicon requests to prevent 404 errors."""
+    return "", 204
+
 
 # Define the home route
-@app.route("/")
+@app.route(API_PREFIX, methods=['GET'])
 def home():
-    return "Hello, World!"
+    return build_success_response(message="Welcome to currency-converter-service")
 
 
-# Define the test route
-@app.route("/api/test")
-def test():
-    return "I'm just testing..."
+# Error handler for undefined routes
+@app.errorhandler(404)
+def not_found(error):    
+    logging.error("Route not found")
+    return build_error_response(message="Route not found", status=404)
 
 
-@app.route('/api/conversion', methods=['GET'])
-def conversion():
-    from_currency = request.args.get('from')
-    to_currency = request.args.get('to')
-    
-    try:
-        currency_service = CurrencyService(app.redis_client)
-        conversion_rate = currency_service.get_conversion_rate(from_currency.upper(), to_currency.upper())
+# Register the HubSpot routes
+app.register_blueprint(currency_bp, url_prefix=API_PREFIX)
 
-        response = {
-            "from": from_currency.upper(),
-            "to": to_currency.upper(),
-            "rate": conversion_rate['rate'],
-            "timestamp": conversion_rate['timestamp']
-        }
-
-        return jsonify(response), 200
-    
-    except InvalidCurrencyCode as e:
-        return jsonify({"error": str(e)}), 400
-    
 
 @app.errorhandler(Exception)
 def handle_exception(error):
-    # Log the error for debugging purposes
-    logging.error(f"Unhandled exception: {error}")
-    
-    # Check the type of error and customize the response
-    if isinstance(error, UnprocessableEntityError):
-        response = {"error": error.message, "details": error.verboseMessage}
-        http_code = error.httpCode
-    elif isinstance(error, NotFoundError):
-        response = {"error": error.message, "details": error.verboseMessage}
-        http_code = error.httpCode
-    elif isinstance(error, OperationForbiddenError):
-        response = {"error": error.message, "details": error.verboseMessage}
-        http_code = error.httpCode
+    """
+    Global error handler that checks if the error is a custom BaseError
+    and uses its properties. Otherwise, returns a generic 500.
+    """
+    # Log the error for debugging
+    logging.error(f"Unhandled exception: {error}", exc_info=True)
+
+    if isinstance(error, BaseError):
+        # A custom error we explicitly raised
+        return build_error_response(
+            message=error.message, 
+            status=error.httpCode, 
+            data=error.verboseMessage
+        )
     else:
-        # Default error response if error type is not specifically handled
-        response = {"error": "Internal Server Error", "details": "An unexpected error occurred"}
-        http_code = 500
-    
-    return jsonify(response), http_code
+        # Default fallback for any other exceptions
+        return build_error_response(
+            message="Internal Server Error",
+            status=500,
+            data=str(error)
+        )

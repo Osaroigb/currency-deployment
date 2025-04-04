@@ -1,9 +1,5 @@
-import os
 from app import app
-from dotenv import load_dotenv
+from app.config import Config
 
-load_dotenv()
-
-# Run the Flask application
 if __name__ == "__main__":
-    app.run(host=os.getenv("HOST"), port=os.getenv("PORT"), debug=True)
+    app.run(host=Config.APP_HOST, port=Config.APP_PORT, debug=True)
