@@ -125,3 +125,64 @@ class CurrencyService:
         except Exception as e:
             logging.error(f"[V2] General exception: {e}")
             raise BadRequestError(str(e))
+        
+
+    def get_account_info(self): 
+        try:
+            url = f"{self.xecd_base_url}/account_info/"
+            response = requests.get(url, auth=(self.xecd_api_id, self.xecd_api_key))
+
+            logging.info("[V2] Account Info response:")
+            logging.info(response.text)
+
+            if response.status_code == 401:
+                raise UnauthorizedError("Invalid XE API credentials.")
+            elif response.status_code >= 500:
+                raise ServiceUnavailableError("XE API is currently unavailable.")
+            elif response.status_code != 200:
+                raise BadRequestError(f"Unexpected error: {response.text}")
+
+            return response.json()
+
+        except requests.exceptions.RequestException as e:
+            logging.error(f"[V2] Request error in account info: {e}")
+            raise ServiceUnavailableError("Could not connect to XE API.")
+        except Exception as e:
+            logging.error(f"[V2] Account info error: {e}")
+            raise BadRequestError(str(e))
+
+
+    def get_currencies(self, iso=None, obsolete=False, language="en", additional_info=None, crypto=False):
+        try:
+            params = {
+                "obsolete": str(obsolete).lower(),
+                "language": language,
+                "crypto": str(crypto).lower()
+            }
+
+            if iso:
+                params["iso"] = iso
+            if additional_info:
+                params["additionalInfo"] = additional_info
+
+            url = f"{self.xecd_base_url}/currencies"
+            response = requests.get(url, params=params, auth=(self.xecd_api_id, self.xecd_api_key))
+
+            logging.info("[V2] Currencies list response:")
+            logging.info(response.text)
+
+            if response.status_code == 401:
+                raise UnauthorizedError("Invalid XE API credentials.")
+            elif response.status_code >= 500:
+                raise ServiceUnavailableError("XE API is currently unavailable.")
+            elif response.status_code != 200:
+                raise BadRequestError(f"Unexpected error: {response.text}")
+
+            return response.json()
+
+        except requests.exceptions.RequestException as e:
+            logging.error(f"[V2] Request error in currencies list: {e}")
+            raise ServiceUnavailableError("Could not connect to XE API.")
+        except Exception as e:
+            logging.error(f"[V2] Currencies fetch error: {e}")
+            raise BadRequestError(str(e))

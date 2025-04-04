@@ -50,3 +50,39 @@ def version_two_conversion():
 
     except Exception as e:
         return build_error_response(message="[V2] currency conversion failed.", status=400, data=str(e))
+    
+
+@currency_bp.route(VERSION_TWO_PREFIX + "/account-info", methods=['GET'])
+def get_account_info():
+    try:
+        currency_service = CurrencyService(app.redis_client)
+        account_info = currency_service.get_account_info()
+
+        return build_success_response(message="XE account info retrieved", data=account_info)
+
+    except Exception as e:
+        return build_error_response(message="Failed to retrieve account info", status=400, data=str(e))
+
+
+@currency_bp.route(VERSION_TWO_PREFIX + "/currencies", methods=['GET'])
+def get_currencies():
+    try:
+        iso = request.args.get("iso")
+        obsolete = request.args.get("obsolete", "false").lower() == "true"
+        language = request.args.get("language", "en")
+        additional_info = request.args.get("additionalInfo")
+        crypto = request.args.get("crypto", "false").lower() == "true"
+
+        currency_service = CurrencyService(app.redis_client)
+        result = currency_service.get_currencies(
+            iso=iso,
+            obsolete=obsolete,
+            language=language,
+            additional_info=additional_info,
+            crypto=crypto
+        )
+
+        return build_success_response(message="XE currencies list retrieved", data=result)
+
+    except Exception as e:
+        return build_error_response(message="Failed to retrieve currencies", status=400, data=str(e))
