@@ -8,7 +8,7 @@ VERSION_TWO_PREFIX = "/v2"
 currency_bp = Blueprint('currency', __name__)
 
 
-@currency_bp.route(VERSION_ONE_PREFIX + "/conversion", methods=['GET'])
+@currency_bp.route("/conversion", methods=['GET'])
 def version_one_conversion():
     from_currency = request.args.get('from')
     to_currency = request.args.get('to')
