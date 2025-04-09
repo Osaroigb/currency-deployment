@@ -1,5 +1,5 @@
 from app import app
-from flask import Blueprint, request
+from flask import Blueprint, request, jsonify
 from app.services.currency_service import CurrencyService
 from app.utils.api_responses import build_success_response, build_error_response
 
@@ -7,7 +7,7 @@ VERSION_ONE_PREFIX = "/v1"
 VERSION_TWO_PREFIX = "/v2"
 currency_bp = Blueprint('currency', __name__)
 
-
+# @currency_bp.route(VERSION_ONE_PREFIX + "/conversion", methods=['GET'])
 @currency_bp.route("/conversion", methods=['GET'])
 def version_one_conversion():
     from_currency = request.args.get('from')
@@ -24,7 +24,8 @@ def version_one_conversion():
             "timestamp": conversion_rate['timestamp']
         }
 
-        return build_success_response(message="[V1] currency converted successfully", data=response)
+        return jsonify(response), 200
+        # return build_success_response(message="[V1] currency converted successfully", data=response)
     
     except Exception as e:
         return build_error_response(message="[V1] currency conversion failed.", status=400, data=str(e))
